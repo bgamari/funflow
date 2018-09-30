@@ -56,6 +56,10 @@ data ParamField
     -- ^ Reference to the effective group ID of the executor.
   | ParamOut
     -- ^ Reference to the output path in the content store.
+  | ParamOutFile (Path Rel File)
+    -- ^ Reference to a file in the output path in the content store.
+  | ParamOutDir (Path Rel Dir)
+    -- ^ Reference to a directory in the output path in the content store.
   | ParamCmd Param
     -- ^ A quoted command that we can pass to another program as an
     -- argument.
@@ -108,6 +112,8 @@ paramFieldToText c (ParamEnv env)   = convEnv c env
 paramFieldToText c ParamUid         = T.pack . show <$> convUid c
 paramFieldToText c ParamGid         = T.pack . show <$> convGid c
 paramFieldToText c ParamOut         = T.pack . fromAbsDir <$> convOut c
+paramFieldToText c (ParamOutFile f) = T.pack . fromAbsFile . (</> f)<$> convOut c
+paramFieldToText c (ParamOutDir d)  = T.pack . fromAbsDir . (</> d)<$> convOut c
 paramFieldToText c (ParamCmd cmd)   = paramToText c cmd
 
 -- | Transform a parameter to text using the given converter.
@@ -156,6 +162,14 @@ gidParam = Param [ParamGid]
 -- | Reference to the output path in the content store.
 outParam :: Param
 outParam = Param [ParamOut]
+
+-- | Reference to a file in the output path in the content store.
+outFileParam :: Path Rel File -> Param
+outFileParam f = Param [ParamOutFile f]
+
+-- | Reference to a directory in the output path in the content store.
+outDirParam :: Path Rel Dir -> Param
+outDirParam d = Param [ParamOutDir d]
 
 -- | Control how and where stdout from the process is captured. Some external
 -- steps will write their output to stdout rather than to a file.
